@@ -8,7 +8,7 @@ SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
 DOBJ := $(SRC:.c=.d)
 
-BINNAME = loftd
+BINNAME = splrgd
 
 $(BINNAME): $(OBJ)
 	$(CC) -o $@ $(OBJ) $(LDLIBS)
