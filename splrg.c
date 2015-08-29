@@ -8,12 +8,104 @@
  *
  * Started: Friday 28 August 2015, 14:39:24
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 15:57:02
+ * Last Modified: Saturday 29 August 2015, 18:45:53
  *
  */
 
 #include "splrg.h"
 
+int setuphttpserver(void)/* {{{ */
+{
+    int sockfd, portno;
+    struct sockaddr_in serv_addr;
+
+    sockfd=socket(AF_INET,SOCK_STREAM,0);
+    if(sockfd < 0){
+        CCAE(1,"Error opening socket");
+    }
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    portno=atoi(configValue("portno"));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
+    if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))<0){
+        CCAE(1,"Cannot bind to socket");
+    }
+    return sockfd;
+}/* }}} */
+int httpserver(void)/* {{{ */
+{
+    int sockfd,newsockfd;
+    socklen_t clilen;
+    struct sockaddr_in cli_addr;
+
+    sockfd=setuphttpserver();
+    listen(sockfd,5);
+    clilen=sizeof(cli_addr);
+    while(1)
+    {
+        /* this will block until a connection is made or we are yanked out by a signal */
+        newsockfd=accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
+        if(newsockfd<0){
+            DBG("Closing listening socket");
+            close(sockfd);
+            CCAE(1,"Error accepting connection");
+        }
+        processinput(newsockfd);
+    }
+}/* }}} */
+void processinput(int isockfd)/* {{{ */
+{
+    int buflen=4096;
+    char *buffer;
+    char rok[]="HTTP/1.1 200\r\nCache-control: no-cache\r\nConnection: close\r\n\r\nOK\r\n";
+    char rnok[]="HTTP/1.1 400\r\nCache-control: no-cache\r\nConnection: close\r\n\r\nGo Away\r\n";
+    int n;
+
+    buffer=xcalloc(buflen,sizeof(char));
+    n=read(isockfd,buffer,buflen-1);
+    if(n<0){
+        CCAC("Error reading from socket, ignoring");
+    }
+    DBGL("msg rcvd: %s",buffer);
+    if((n=parseinput(buffer))==0){
+        DBG("sending 200 OK");
+        n=write(isockfd,rok,strlen(rok));
+    }else{
+        DBG("sending 400 Failed");
+        n=write(isockfd,rnok,strlen(rnok));
+    }
+    if(n<0){
+        CCAC("Error writing to socket, ignoring");
+    }
+    close(isockfd);
+    free(buffer);
+}/* }}} */
+int parseinput(char *buf)/* {{{ */
+{
+    char space[]=" ";
+    char *cmd;
+    int junk;
+
+    /* buffer: GET /runpuppet ... */
+    cmd=strtok(buf,space);
+    cmd=strtok(NULL,space);
+    if((junk=strcmp(cmd,"/runpuppet"))==0){
+        DBG("Code to run puppet goes here");
+        return 0;
+    }
+    return 1;
+}/* }}} */
+void closedown(void)/* {{{ */
+{
+    INFO(PROGNAME" closing");
+    DBG("freeing config");
+    deleteConfig();
+    DBG("deleting lock file");
+    unlink(CCA_LOCK_FILE);
+    NOTICE(PROGNAME" stopped");
+    DBG("Bye!");
+}/* }}} */
 void catchsignal(int sig)/* {{{1 */
 {
     DBG("in sig handler");
@@ -31,7 +123,7 @@ void catchsignal(int sig)/* {{{1 */
             break;
         case SIGTERM:
             DBG("SIGTERM signal caught");
-            timetodie=1;
+            closedown();
             break;
     }
     // signal(sig,catchsignal);
@@ -115,6 +207,9 @@ void setDefaultConfig(void)/*{{{*/
     updateConfig(tk,tv);
     tk=strdup("groupname");
     tv=strdup(CCA_DEFAULT_GROUPNAME);
+    updateConfig(tk,tv);
+    tk=strdup("portno");
+    tv=strdup(CCA_DEFAULT_PORTNO);
     updateConfig(tk,tv);
 }/* }}} */
 void daemonize()/* {{{1 */
@@ -251,19 +346,7 @@ int main(int argc,char **argv)/* {{{ */
     }else{
         CCAE(1,"Cannot initialise configuration.");
     }
-    while(1)
-    {
-        sleep(1);
-        if(timetodie){
-            break;
-        }
-    }
-    INFO(PROGNAME" closing");
-    DBG("freeing config");
-    deleteConfig();
-    DBG("deleting lock file");
-    unlink(CCA_LOCK_FILE);
-    NOTICE(PROGNAME" stopped");
-    DBG("Bye!");
+    httpserver();
+    /* we don't actually ever get here, but gcc will complain if I don't set a return code */
     return ret;
 }/*}}}*/

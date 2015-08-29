@@ -8,7 +8,7 @@
  *
  * Started: Monday  6 April 2015, 09:24:04
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 14:21:18
+ * Last Modified: Saturday 29 August 2015, 17:43:15
  */
 
 /*
@@ -26,6 +26,9 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <poll.h>
 
 /*
  * libgen for the posix version of basename (tools.c:129)
@@ -65,3 +68,4 @@
 #define CCA_DEFAULT_PUPPETBIN "/usr/lib/bgch-puppet/puppet-apply.sh"
 #define CCA_DEFAULT_USERNAME "chrisallison"
 #define CCA_DEFAULT_GROUPNAME "chrisallison"
+#define CCA_DEFAULT_PORTNO "2208"
