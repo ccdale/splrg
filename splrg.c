@@ -8,22 +8,12 @@
  *
  * Started: Friday 28 August 2015, 14:39:24
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 15:55:59
+ * Last Modified: Saturday 29 August 2015, 15:57:02
  *
  */
 
 #include "splrg.h"
 
-void closedown(void)/* {{{1 */
-{
-    INFO(PROGNAME" closing");
-    DBG("freeing config");
-    deleteConfig();
-    DBG("deleting lock file");
-    unlink(CCA_LOCK_FILE);
-    NOTICE(PROGNAME" stopped");
-    exit(0);
-}
 void catchsignal(int sig)/* {{{1 */
 {
     DBG("in sig handler");
