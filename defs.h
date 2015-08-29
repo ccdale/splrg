@@ -4,11 +4,11 @@
  * defs.h
  *
  * C.C.Allison
- * chris.allison@hotmail.com
+ * chris.allison@bgch.co.uk
  *
  * Started: Monday  6 April 2015, 09:24:04
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 11:08:15
+ * Last Modified: Saturday 29 August 2015, 14:21:18
  */
 
 /*
@@ -21,11 +21,11 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <pwd.h>
 
 /*
  * libgen for the posix version of basename (tools.c:129)
@@ -36,12 +36,11 @@
 #include <limits.h>
 
 /* for directory stuff */
-#include <sys/types.h>
 #include <dirent.h>
 
 #define PROGNAME "splrgd"
 #define PROGVERSION "0.0.1"
-#define PROGEMAIL "chris.allison@hotmail.com"
+#define PROGEMAIL "chris.allison@bgch.co.uk"
 #define PROGCOPYRIGHT "Copyright (C) 2014-2015 Chris Allison"
 #define PROGLICENSE "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
 
@@ -64,3 +63,5 @@
 #define CCA_DEFAULT_CONFIGFILE PROGCONF
 #define CCA_DEFAULT_DAEMONIZE "1"
 #define CCA_DEFAULT_PUPPETBIN "/usr/lib/bgch-puppet/puppet-apply.sh"
+#define CCA_DEFAULT_USERNAME "chrisallison"
+#define CCA_DEFAULT_GROUPNAME "chrisallison"

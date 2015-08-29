@@ -9,7 +9,7 @@
  * Started: Sunday 23 December 2012, 09:47:48
  * Version: 0.00
  * Revision: $Id: configfile.c 37 2013-02-03 02:47:31Z chris.charles.allison@gmail.com $
- * Last Modified: Saturday 29 August 2015, 11:48:20
+ * Last Modified: Saturday 29 August 2015, 14:35:53
  */
 
 #include "configfile.h"
@@ -106,7 +106,7 @@ struct ConfigItem *addConfig(char *key, char *value)/* {{{1 */
 {
     struct ConfigItem *tc;
 
-    printf("adding config item %s = %s\n",key,value);
+    DBGL("adding config item %s = %s\n",key,value);
     if(configuration->key==NULL){
         /* configuration has been initialised but is empty */
         configuration->key=key;

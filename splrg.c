@@ -8,7 +8,7 @@
  *
  * Started: Friday 28 August 2015, 14:39:24
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 11:51:53
+ * Last Modified: Saturday 29 August 2015, 14:37:52
  *
  */
 
@@ -32,9 +32,11 @@ void catchsignal(int sig)/* {{{1 */
     switch(sig){
         case SIGHUP:
             DBG("SIGHUP signal caught");
+            NOTICE(PROGNAME" is not designed to reload it's config.  Please stop and re-start it");
             break;
         case SIGINT:
             DBG("SIGINT signal caught");
+            NOTICE(PROGNAME" is not designed to be interrupted. Please stop it and re-start it when ready");
             break;
         case SIGUSR1:
             DBG("SIGUSR1 signal caught");
@@ -51,6 +53,8 @@ void daemonize()/* {{{1 */
     int i,lfp;
     char str[MAX_MSG_LEN];
     int junk;
+    struct passwd *pwd;
+    char *username;
 
     if(getppid()==1) return; /* already a daemon */
     DBG("Forking");
@@ -76,8 +80,25 @@ void daemonize()/* {{{1 */
     i=open("/dev/null",O_RDWR); dup(i); dup(i); /* handle standard I/O */
     DBG("setting umask to 027");
     umask(027); /* set newly created file permissions */
-    DBGL("cd'ing to %s",CCA_HOME);
-    chdir(CCA_HOME); /* change running directory */
+
+    DBG("Dropping priviledges");
+    username=configValue("username");
+    if((pwd=getpwnam(username))==NULL){
+        CCAE(1,"user not found, will not run as root, exiting");
+    }
+    errno=0;
+    junk=setuid(pwd->pw_uid);
+    if(errno){
+        CCAE(1,"failed to drop priviledges, will not run as root, exiting");
+    }
+    errno=0;
+    junk=setgid(pwd->pw_gid);
+    if(errno){
+        CCAE(1,"failed to drop group priviledges, will not run as root, exiting");
+    }
+
+    DBGL("cd'ing to %s",pwd->pw_dir);
+    chdir(pwd->pw_dir); /* change running directory */
     DBG("Creating lock file");
     lfp=open(CCA_LOCK_FILE,O_RDWR|O_CREAT,0640);
     if (lfp<0) {
@@ -92,10 +113,12 @@ void daemonize()/* {{{1 */
     write(lfp,str,strlen(str)); /* record pid to lockfile */
     DBG("pid written to lock file");
     DBG("setting signal handlers");
+    /*
     siga->sa_handler=SIG_IGN;
     if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
         CCAE(1,"cannot ignore signal SIGCHLD");
     }
+    */
     siga->sa_handler=SIG_IGN;
     if((junk=sigaction(SIGTSTP,siga,NULL))!=0){
         CCAE(1,"cannot ignore signal SIGTSTP");
@@ -124,6 +147,10 @@ void daemonize()/* {{{1 */
     if((junk=sigaction(SIGUSR1,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGUSR1");
     }
+    siga->sa_handler=catchsignal;
+    if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
+        CCAE(1,"cannot set handler for SIGCHLD");
+    }
     DBG(PROGNAME" daemonized");
 }/* }}} */
 void setDefaultConfig(void)/*{{{*/
@@ -140,8 +167,14 @@ void setDefaultConfig(void)/*{{{*/
     tk=strdup("puppetbin");
     tv=strdup(CCA_DEFAULT_PUPPETBIN);
     updateConfig(tk,tv);
-}/*}}}*/
-int main(int argc,char **argv)/*{{{*/
+    tk=strdup("username");
+    tv=strdup(CCA_DEFAULT_USERNAME);
+    updateConfig(tk,tv);
+    tk=strdup("groupname");
+    tv=strdup(CCA_DEFAULT_GROUPNAME);
+    updateConfig(tk,tv);
+}/* }}} */
+int main(int argc,char **argv)/* {{{ */
 {
     int ret=0;
     int junk;
@@ -210,10 +243,13 @@ int main(int argc,char **argv)/*{{{*/
         siga=xmalloc(sizeof(struct sigaction));
         siga->sa_handler=catchsignal;
         siga->sa_flags=0;
+        DBG("setting default config");
         setDefaultConfig();
         if(conffile){
             updateConfig("configfile",conffile);
         }
+        DBGL("Getting config from %s",configValue("configfile"));
+        getConfigFromFile( configValue("configfile") );
         if((junk=atoi(configValue("daemonize"))==1)){
             daemonize();
         }else{
@@ -233,8 +269,6 @@ int main(int argc,char **argv)/*{{{*/
                 CCAE(1,"cannot set handler for SIGUSR1");
             }
         }
-        DBGL("Getting config from %s",configValue("configfile"));
-        getConfigFromFile( configValue("configfile") );
     }else{
         CCAE(1,"Cannot initialise configuration.");
     }

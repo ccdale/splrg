@@ -9,7 +9,7 @@
  * Started: Sunday 23 December 2012, 19:43:14
  * Version: 0.00
  * Revision: $Id: macros.h 53 2013-02-18 22:43:38Z chris.charles.allison@gmail.com $
- * Last Modified: Saturday 29 August 2015, 11:56:14
+ * Last Modified: Saturday 29 August 2015, 14:33:36
  */
 
 extern int llevel;
@@ -47,8 +47,8 @@ extern int llevel;
 #define DEBUGPRINT3(...)       syslog(LOG_DEBUG,__VA_ARGS__)
 #define DEBUGPRINT(_fmt, ...)  DEBUGPRINT3(WHERESTR _fmt, WHEREARG, __VA_ARGS__)
 /* #define DBG(_fmt, ...) DEBUGPRINT(_fmt, __VA_ARGS__) */
-#define DBGL(_fmt, ...) DEBUGPRINT2(WHERESTR _fmt"\n", WHEREARG, __VA_ARGS__)
-#define DBG(...) DEBUGPRINT2(WHERESTR" %s\n",WHEREARG,__VA_ARGS__)
+#define DBGL(_fmt, ...) if(llevel>=7){ DEBUGPRINT2(WHERESTR _fmt"\n", WHEREARG, __VA_ARGS__); }
+#define DBG(...) if(llevel>=7){ DEBUGPRINT2(WHERESTR" %s\n",WHEREARG,__VA_ARGS__); }
 #else
 #define DEBUGPRINT(_fmt, ...) {}
 #define DBG(_fmt, ...) {}
