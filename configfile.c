@@ -4,12 +4,12 @@
  * configfile.c
  *
  * C.C.Allison
- * chris.allison@hotmail.com
+ * chris.allison@bgch.co.uk
  *
  * Started: Sunday 23 December 2012, 09:47:48
  * Version: 0.00
  * Revision: $Id: configfile.c 37 2013-02-03 02:47:31Z chris.charles.allison@gmail.com $
- * Last Modified: Monday  1 June 2015, 07:10:28
+ * Last Modified: Saturday 29 August 2015, 11:48:20
  */
 
 #include "configfile.h"
@@ -47,57 +47,58 @@ void getConfigFromFile(char *filename)/* {{{1 */
     char equals[]="=";
     char hash[]="#";
 
-    buffer=xmalloc(bufsize);
     if((fsize=filesize(filename))==-1){
-        CCA_ERR_EXIT(3,"Cannot read config filename provided.");
-    }
-    cfp=fopen(filename,"r");
-    if(cfp){
-        while((str=fgets(buffer,bufsize,cfp))!=NULL){
-            /* trim off any leading and trailing white space and the trailing new line */
-            str=trim(buffer);
-            /* check for the empty string */
-            if((slen=strlen(str))>0){
-                /* check for commented lines */
-                if(str[0]!='#'){
-                    /*
-                     * if strtok returns NULL then there is no = sign on the line
-                     * so the key becomes the whole line and
-                     * the value is set to NULL
-                     */
-                    if((tkey=strtok(str,equals))==NULL){
-                        if(( key=strdup(str)) == NULL){
-                            CCAE(1,"out of memory attempting to duplicate %s.",str);
+        WARN("Cannot read config filename provided.");
+    }else{
+        buffer=xmalloc(bufsize);
+        cfp=fopen(filename,"r");
+        if(cfp){
+            while((str=fgets(buffer,bufsize,cfp))!=NULL){
+                /* trim off any leading and trailing white space and the trailing new line */
+                str=trim(buffer);
+                /* check for the empty string */
+                if((slen=strlen(str))>0){
+                    /* check for commented lines */
+                    if(str[0]!='#'){
+                        /*
+                         * if strtok returns NULL then there is no = sign on the line
+                         * so the key becomes the whole line and
+                         * the value is set to NULL
+                         */
+                        if((tkey=strtok(str,equals))==NULL){
+                            if(( key=strdup(str)) == NULL){
+                                CCAE(1,"out of memory attempting to duplicate %s.",str);
+                            }else{
+                                value=NULL;
+                            }
                         }else{
-                            value=NULL;
-                        }
-                    }else{
-                        /* trim each part as well */
-                        tkey=rtrim(tkey);
-                        if(( key=strdup(tkey)) == NULL){
-                            CCAE(1,"out of memory attempting to duplicate %s.",str);
-                        }else{
-                            if((value=strtok(NULL,equals))!=NULL){
-                                /* check for end of line comments */
-                                if((tv=strtok(value,hash))!=NULL){
-                                    if(( value=strdup(trim(tv))) == NULL){
-                                        CCAE(1,"out of memory attempting to duplicate %s.",str);
-                                    }
-                                }else{
-                                    if(( value=strdup(trim(value))) == NULL){
-                                        CCAE(1,"out of memory attempting to duplicate %s.",str);
+                            /* trim each part as well */
+                            tkey=rtrim(tkey);
+                            if(( key=strdup(tkey)) == NULL){
+                                CCAE(1,"out of memory attempting to duplicate %s.",str);
+                            }else{
+                                if((value=strtok(NULL,equals))!=NULL){
+                                    /* check for end of line comments */
+                                    if((tv=strtok(value,hash))!=NULL){
+                                        if(( value=strdup(trim(tv))) == NULL){
+                                            CCAE(1,"out of memory attempting to duplicate %s.",str);
+                                        }
+                                    }else{
+                                        if(( value=strdup(trim(value))) == NULL){
+                                            CCAE(1,"out of memory attempting to duplicate %s.",str);
+                                        }
                                     }
                                 }
                             }
                         }
+                        updateConfig(key,value);
                     }
-                    updateConfig(key,value);
                 }
             }
+            fclose(cfp);
+        }else{
+            WARN("Cannot open config file for reading.");
         }
-        fclose(cfp);
-    }else{
-        CCA_ERR_EXIT(4,"Cannot open config file for reading.");
     }
     free(buffer);
 }/* }}} */

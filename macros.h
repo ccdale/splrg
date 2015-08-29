@@ -4,25 +4,35 @@
  * macros.h
  *
  * C.C.Allison
- * chris.allison@hotmail.com
+ * chris.allison@bgch.co.uk
  *
  * Started: Sunday 23 December 2012, 19:43:14
  * Version: 0.00
  * Revision: $Id: macros.h 53 2013-02-18 22:43:38Z chris.charles.allison@gmail.com $
- * Last Modified: Monday  6 April 2015, 09:23:51
+ * Last Modified: Saturday 29 August 2015, 11:56:14
  */
+
+extern int llevel;
+
 // #define PRODUCTION
 #ifndef PRODUCTION
 #define CCA_ERR_CONT(...) syslog(LOG_ERR,__VA_ARGS__);fprintf(stderr,__VA_ARGS__);
 #define CCA_ERR_EXIT(ccaex,...) CCA_ERR_CONT(__VA_ARGS__);exit(ccaex);
 #define CCAC(...) CCA_ERR_CONT(__VA_ARGS__)
 #define CCAE(ccaex,...) CCA_ERR_EXIT(ccaex,__VA_ARGS__)
+#define DEBUG(...) if(llevel>=7){ syslog(LOG_DEBUG,__VA_ARGS__);}
+#define INFO(...) if(llevel>=6){ syslog(LOG_INFO,__VA_ARGS__);}
+#define NOTICE(...) if(llevel>=5){ syslog(LOG_NOTICE,__VA_ARGS__);}
+#define WARN(...) if(llevel>=4){ syslog(LOG_WARNING,__VA_ARGS__);}
 #else
 #define CCA_ERR_CONT(...) syslog(LOG_ERR,__VA_ARGS__)
 #define CCA_ERR_EXIT(ccaex,...) CCA_ERR_CONT(__VA_ARGS__);exit(ccaex);
 #define CCAC(...) CCA_ERR_CONT(__VA_ARGS__)
 #define CCAE(ccaex,...) CCA_ERR_EXIT(ccaex,__VA_ARGS__)
-#define CCAL(...) syslog(LOG_INFO,__VA_ARGS__)
+#define DEBUG(...) if(llevel>=7){ syslog(LOG_DEBUG,__VA_ARGS__);}
+#define INFO(...) if(llevel>=6){ syslog(LOG_INFO,__VA_ARGS__);}
+#define NOTICE(...) if(llevel>=5){ syslog(LOG_NOTICE,__VA_ARGS__);}
+#define WARN(...) if(llevel>=4){ syslog(LOG_WARNING,__VA_ARGS__);}
 #endif
 
 /* define NDEBUG to remove debug msgs */
@@ -40,7 +50,6 @@
 #define DBGL(_fmt, ...) DEBUGPRINT2(WHERESTR _fmt"\n", WHEREARG, __VA_ARGS__)
 #define DBG(...) DEBUGPRINT2(WHERESTR" %s\n",WHEREARG,__VA_ARGS__)
 #else
-#define CCADBG(ccastr) {} 
 #define DEBUGPRINT(_fmt, ...) {}
 #define DBG(_fmt, ...) {}
 #define DBGL(_fmt,...) {}

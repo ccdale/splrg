@@ -4,12 +4,12 @@
  * tools.c
  *
  * C.C.Allison
- * chris.allison@hotmail.com
+ * chris.allison@bgch.co.uk
  *
  * Started: Wednesday 21 November 2012, 10:46:01
  * Version: 0.00
  * Revision: $Id: tools.c 55 2013-03-24 21:48:39Z chris.charles.allison@gmail.com $
- * Last Modified: Monday  1 June 2015, 07:16:49
+ * Last Modified: Saturday 29 August 2015, 11:58:01
  */
 
 #include "tools.h"
@@ -147,18 +147,18 @@ long filesize(char *filename)/* {{{1 */
     struct stat *statbuf;
 
     statbuf=xmalloc(sizeof(struct stat));
-    /* syslog(LOG_DEBUG,"in filesize, malloced statbuf, statting"); */
+    DBG("in filesize, malloced statbuf, statting");
     ret=stat(filename,statbuf);
     if(ret==0){
-        /* syslog(LOG_DEBUG,"stat ok. reading file size"); */
+        DBG("stat ok. reading file size");
         fsize=statbuf->st_size;
-        // syslog(LOG_DEBUG,"file size: %ld",fsize);
+        DBGL("file size: %ld",fsize);
     }else{
-        syslog(LOG_ERR,"Cannot read file %s",filename);
+        WARN("Cannot read file %s",filename);
     }
-    /* syslog(LOG_DEBUG,"freeing stat buffer"); */
+    DBG("freeing stat buffer");
     free(statbuf);
-    /* syslog(LOG_DEBUG,"returning from filesize: %ld",fsize); */
+    DBGL("returning from filesize: %ld",fsize);
     return fsize;
 }/* }}} */
 char *newstringpointer(char *str)/* {{{1 */
