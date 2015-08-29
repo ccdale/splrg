@@ -8,7 +8,7 @@
  *
  * Started: Sunday 12 April 2015, 09:26:56
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 11:54:35
+ * Last Modified: Saturday 29 August 2015, 15:47:26
  *
  * Copyright (c) 2015 Chris Allison chris.allison@bgch.co.uk
  */
@@ -20,14 +20,17 @@
 
 /* globals */
 struct ConfigItem *configuration;
-struct sigaction *siga;
+/* struct sigaction *siga; */
 int llevel=5;
+int timetodie=0;
 
 #include "macros.h"
 #include "tools.h"
 #include "configfile.h"
 
+void closedown(void);
 void catchsignal(int sig);
-void daemonize();
+char *argprocessing(int argc,char **argv);
 void setDefaultConfig(void);
+void daemonize();
 int main(int argc,char **argv);
