@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 13:11:30
+ * Last Modified: Sunday 30 August 2015, 13:40:46
  *
  */
 
@@ -240,6 +240,9 @@ void setDefaultConfig(void)/*{{{*/
     updateConfig(tk,tv);
     tk=strdup("puppetbin");
     tv=strdup(CCA_DEFAULT_PUPPETBIN);
+    updateConfig(tk,tv);
+    tk=strdup("puppetlog");
+    tv=strdup(CCA_DEFAULT_PUPPETLOG);
     updateConfig(tk,tv);
     tk=strdup("username");
     tv=strdup(CCA_DEFAULT_USERNAME);

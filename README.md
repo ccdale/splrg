@@ -1,4 +1,5 @@
-# splrg
+# splrgd
+splrgd is a daemon to listen for requests to run puppet on this host.
 
 ## Usage
 ````
@@ -33,10 +34,12 @@ apt-get install libargtable2-0
  2. copy the config file ````splrgd.conf```` to /etc/
 
 ## Configuration
- 1. username: username to run the daemon as
- 2. groupname: groupname to run the daemon as
- 3. puppetbin: path to the puppet-apply.sh script
- 4. puppetlog: where to put the output of the puppet-apply.sh script
+no changes will be required to the configuration file if these defaults suffice (obvs. they don't as we disable the umbongo user)
+ 1. portno: port number to listen on (default: 2208)
+ 1. username: username to run the daemon as (default: umbongo)
+ 2. groupname: groupname to run the daemon as (default: umbongo)
+ 3. puppetbin: path to the puppet-apply.sh script (default: /usr/lib/bgch-puppet/puppet-apply.sh)
+ 4. puppetlog: where to put the output of the puppet-apply.sh script (default: /var/log/last_puppet_run.log)
 
 ## Username
 the daemon drops root priviledges to the configured user.

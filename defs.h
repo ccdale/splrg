@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Monday  6 April 2015, 09:24:04
- * Last Modified: Sunday 30 August 2015, 12:33:34
+ * Last Modified: Sunday 30 August 2015, 13:39:51
  */
 
 /*
@@ -62,9 +62,8 @@
 #define MAX_MSG_LEN 4096
 
 #define CCA_DEFAULT_CONFIGFILE PROGCONF
-#define CCA_DEFAULT_DAEMONIZE "1"
 #define CCA_DEFAULT_PUPPETBIN "/usr/lib/bgch-puppet/puppet-apply.sh"
 #define CCA_DEFAULT_PUPPETLOG "/var/log/last_puppet_run.log"
-#define CCA_DEFAULT_USERNAME "ubuntu"
-#define CCA_DEFAULT_GROUPNAME "ubuntu"
+#define CCA_DEFAULT_USERNAME "umbongo"
+#define CCA_DEFAULT_GROUPNAME "umbongo"
 #define CCA_DEFAULT_PORTNO "2208"
