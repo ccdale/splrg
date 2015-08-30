@@ -41,9 +41,9 @@ NOTE: ````make```` will output 3 errors regarding missing dependency files, then
 
 run
 ````
-package.sh
+./package.sh
 ````
-in the source directory to build a debian package.
+in the source directory to build a debian package. This will create a build directory, run make clean and make, then run fpm.
 
 ## Configuration
 no changes will be required to the configuration file if these defaults suffice (obvs. they don't as we disable the umbongo user)
