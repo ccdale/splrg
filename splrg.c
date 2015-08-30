@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 22:59:37
+ * Last Modified: Sunday 30 August 2015, 23:32:17
  *
  */
 
@@ -179,6 +179,9 @@ void catchsignal(int sig)/* {{{1 */
     switch(sig){
         case SIGCHLD:
             DBG("SIGCHLD signal caught");
+            int childStatus;
+            pid_t returnValue = waitpid(-1, &childStatus, 0);
+            DBGL("Child exited with return value of %d",returnValue);
             puppetrunning--;
             break;
         case SIGTERM:
