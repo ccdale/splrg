@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 22:07:41
+ * Last Modified: Sunday 30 August 2015, 22:11:18
  *
  */
 
@@ -147,21 +147,14 @@ int parseinput(char *buf,char **data)/* {{{ */
 void runpuppet(void)/* {{{ */
 {
     int cpid;
-    /*
-    char *args=NULL;
-    char *arg2=NULL;
-    char sudo[]="/usr/bin/sudo";
-    */
     char *pbin=NULL;
     char *shell=NULL;
     int len;
-    int kstatus;
 
     cpid=fork();
     if(cpid<0){
         CCAE(1,"out of memory, cannot fork to run puppet");
     }else if(cpid>0){
-        /* waitpid(-1, &kstatus, WNOHANG); */
         puppetrunning++;
     }else{
         len=snprintf(pbin,0,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
