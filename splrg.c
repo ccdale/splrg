@@ -8,7 +8,7 @@
  *
  * Started: Friday 28 August 2015, 14:39:24
  * Version: 0.00
- * Last Modified: Sunday 30 August 2015, 02:11:18
+ * Last Modified: Sunday 30 August 2015, 02:40:55
  *
  */
 
@@ -44,14 +44,27 @@ int httpserver(void)/* {{{ */
     clilen=sizeof(cli_addr);
     while(1)
     {
+        errno=0;
         /* this will block until a connection is made or we are yanked out by a signal */
         newsockfd=accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
         if(newsockfd<0){
-            DBG("Closing listening socket");
-            close(sockfd);
-            CCAE(1,"Error accepting connection");
+            if(errno==EINTR){
+                /* call was interrupted by a signal, restart it if necessary or gracefully exit */
+                if(timetodie==1){
+                    DBG("Closing listening socket");
+                    close(sockfd);
+                    break;
+                }
+            }else{
+                /* something else went wrong accessing the socket, time to exit fast */
+                DBG("Closing listening socket");
+                close(sockfd);
+                CCAE(1,"Error accepting connection, exiting");
+            }
+        }else{
+            /* every thing is fine, read the input */
+            processinput(newsockfd);
         }
-        processinput(newsockfd);
     }
 }/* }}} */
 void processinput(int isockfd)/* {{{ */
@@ -112,6 +125,7 @@ void catchsignal(int sig)/* {{{1 */
 {
     DBG("in sig handler");
     switch(sig){
+        /* 
         case SIGHUP:
             DBG("SIGHUP signal caught");
             NOTICE(PROGNAME" is not designed to reload it's config.  Please stop and re-start it");
@@ -123,9 +137,15 @@ void catchsignal(int sig)/* {{{1 */
         case SIGUSR1:
             DBG("SIGUSR1 signal caught");
             break;
+            */
+        case SIGCHLD:
+            DBG("SIGCHLD signal caught");
+            puppetrunning--;
+            break;
         case SIGTERM:
             DBG("SIGTERM signal caught");
-            closedown();
+            timetodie=1;
+            /* closedown(); */
             break;
     }
     // signal(sig,catchsignal);
@@ -301,22 +321,22 @@ void daemonize()/* {{{1 */
     if((junk=sigaction(SIGTTIN,siga,NULL))!=0){
         CCAE(1,"cannot ignore signal SIGTTIN");
     }
-    /* interesting (caught) signals */
-    siga->sa_handler=catchsignal;
+    siga->sa_handler=SIG_IGN;
     if((junk=sigaction(SIGHUP,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGHUP");
     }
-    siga->sa_handler=catchsignal;
-    if((junk=sigaction(SIGTERM,siga,NULL))!=0){
-        CCAE(1,"cannot set handler for SIGTERM");
-    }
-    siga->sa_handler=catchsignal;
+    siga->sa_handler=SIG_IGN;
     if((junk=sigaction(SIGINT,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGINT");
     }
-    siga->sa_handler=catchsignal;
+    siga->sa_handler=SIG_IGN;
     if((junk=sigaction(SIGUSR1,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGUSR1");
+    }
+    /* interesting (caught) signals */
+    siga->sa_handler=catchsignal;
+    if((junk=sigaction(SIGTERM,siga,NULL))!=0){
+        CCAE(1,"cannot set handler for SIGTERM");
     }
     siga->sa_handler=catchsignal;
     if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
@@ -346,6 +366,13 @@ int main(int argc,char **argv)/* {{{ */
         CCAE(1,"Cannot initialise configuration.");
     }
     httpserver();
-    /* we don't actually ever get here, but gcc will complain if I don't set a return code */
+    INFO(PROGNAME" closing");
+    DBG("freeing config");
+    deleteConfig();
+    DBG("freeing signal handlers");
+    free(siga);
+    DBG("deleting lock file");
+    unlink(CCA_LOCK_FILE);
+    NOTICE(PROGNAME" stopped");
     return ret;
 }/*}}}*/
