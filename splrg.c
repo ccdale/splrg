@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 13:40:46
+ * Last Modified: Sunday 30 August 2015, 21:38:06
  *
  */
 
@@ -69,9 +69,15 @@ void httpserver(void)/* {{{ */
 void processinput(int isockfd)/* {{{ */
 {
     int buflen=4096;
+    char *data=NULL;
     char *buffer;
+    char header[]="\r\nCache-control: no-cache\r\nConnection: close\r\n\r\n";
+    /*
     char rok[]="HTTP/1.1 200\r\nCache-control: no-cache\r\nConnection: close\r\n\r\nOK\r\n";
     char rnok[]="HTTP/1.1 404\r\nCache-control: no-cache\r\nConnection: close\r\n\r\n\r\n";
+    */
+    char *response=NULL;
+    int len;
     int n;
 
     buffer=xcalloc(buflen,sizeof(char));
@@ -80,25 +86,39 @@ void processinput(int isockfd)/* {{{ */
         CCAC("Error reading from socket, ignoring");
     }
     DBGL("msg rcvd: %s",buffer);
-    if((n=parseinput(buffer))==0){
-        DBG("sending 200 OK");
-        n=write(isockfd,rok,strlen(rok));
+    n=parseinput(buffer,&data);
+    if(n==0){
+        len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,"");
+        response=xmalloc(++len);
+        len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",200,header,"");
+    }else if(n==-1){
+        /* data needs to be sent back, data is now in *data  and space has been allocated by malloc */
+        len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,data);
+        response=xmalloc(++len);
+        len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",200,header,data);
+        free(data);
     }else{
-        DBG("sending 404 Failed");
-        n=write(isockfd,rnok,strlen(rnok));
+        len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",404,header,"");
+        response=xmalloc(++len);
+        len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",404,header,"");
     }
+    DBGL("sending: %s",response);
+    n=write(isockfd,response,strlen(response));
     if(n<0){
         CCAC("Error writing to socket, ignoring");
     }
     DBG("Closing process socket");
     close(isockfd);
+    DBG("Freeing intermediate buffers");
+    free(response);
     free(buffer);
 }/* }}} */
-int parseinput(char *buf)/* {{{ */
+int parseinput(char *buf,char **data)/* {{{ */
 {
     char space[]=" ";
     char *cmd;
     int ret=1;
+    int len;
 
     /* buffer: GET /runpuppet ... */
     cmd=strtok(buf,space);
@@ -107,6 +127,20 @@ int parseinput(char *buf)/* {{{ */
         DBG("Code to run puppet goes here");
         runpuppet();
         ret=0;
+    }else if((strcmp(cmd,"/status")==0)){
+        len=snprintf(*data,0,"%d",puppetrunning);
+        *data=xmalloc(++len);
+        len=snprintf(*data,len,"%d",puppetrunning);
+        ret=-1;
+    }else if((strcmp(cmd,"/lastlog")==0)){
+        FILE *f=fopen(configValue("puppetlog"),"rb");
+        fseek(f,0,SEEK_END);
+        long fsize = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        *data=xmalloc(fsize+1);
+        fread(*data,fsize,1,f);
+        fclose(f);
+        ret=-1;
     }
     return ret;
 }/* }}} */
@@ -121,11 +155,13 @@ void runpuppet(void)/* {{{ */
     char *pbin=NULL;
     char *shell=NULL;
     int len;
+    int kstatus;
 
     cpid=fork();
     if(cpid<0){
         CCAE(1,"out of memory, cannot fork to run puppet");
     }else if(cpid>0){
+        waitpid(-1, &kstatus, WNOHANG);
         puppetrunning++;
     }else{
         len=snprintf(pbin,0,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
@@ -144,18 +180,6 @@ void runpuppet(void)/* {{{ */
     }
     DBG("runpuppet exiting");
 }/* }}} */
-void closedown(void)/* {{{ */
-{
-    INFO(PROGNAME" closing");
-    DBG("freeing config");
-    deleteConfig();
-    DBG("freeing signal handlers");
-    free(siga);
-    DBG("deleting lock file");
-    unlink(CCA_LOCK_FILE);
-    NOTICE(PROGNAME" stopped");
-    DBG("Bye!");
-}/* }}} */
 void catchsignal(int sig)/* {{{1 */
 {
     DBG("in sig handler");
@@ -163,7 +187,6 @@ void catchsignal(int sig)/* {{{1 */
         case SIGTERM:
             DBG("SIGTERM signal caught");
             timetodie=1;
-            /* closedown(); */
             break;
     }
 } /* }}} */

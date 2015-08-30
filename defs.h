@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Monday  6 April 2015, 09:24:04
- * Last Modified: Sunday 30 August 2015, 13:39:51
+ * Last Modified: Sunday 30 August 2015, 21:37:32
  */
 
 /*
@@ -15,6 +15,10 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <sys/types.h>
+#include <argtable2.h>
+
 #include <unistd.h>
 #include <syslog.h>
 #include <string.h>
@@ -28,6 +32,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <sys/wait.h>
 
 /*
  * libgen for the posix version of basename (tools.c:129)
