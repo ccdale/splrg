@@ -7,8 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Version: 0.00
- * Last Modified: Sunday 30 August 2015, 02:40:55
+ * Last Modified: Sunday 30 August 2015, 13:11:30
  *
  */
 
@@ -33,7 +32,7 @@ int setuphttpserver(void)/* {{{ */
     }
     return sockfd;
 }/* }}} */
-int httpserver(void)/* {{{ */
+void httpserver(void)/* {{{ */
 {
     int sockfd,newsockfd;
     socklen_t clilen;
@@ -72,7 +71,7 @@ void processinput(int isockfd)/* {{{ */
     int buflen=4096;
     char *buffer;
     char rok[]="HTTP/1.1 200\r\nCache-control: no-cache\r\nConnection: close\r\n\r\nOK\r\n";
-    char rnok[]="HTTP/1.1 400\r\nCache-control: no-cache\r\nConnection: close\r\n\r\nGo Away\r\n";
+    char rnok[]="HTTP/1.1 404\r\nCache-control: no-cache\r\nConnection: close\r\n\r\n\r\n";
     int n;
 
     buffer=xcalloc(buflen,sizeof(char));
@@ -85,12 +84,13 @@ void processinput(int isockfd)/* {{{ */
         DBG("sending 200 OK");
         n=write(isockfd,rok,strlen(rok));
     }else{
-        DBG("sending 400 Failed");
+        DBG("sending 404 Failed");
         n=write(isockfd,rnok,strlen(rnok));
     }
     if(n<0){
         CCAC("Error writing to socket, ignoring");
     }
+    DBG("Closing process socket");
     close(isockfd);
     free(buffer);
 }/* }}} */
@@ -98,16 +98,51 @@ int parseinput(char *buf)/* {{{ */
 {
     char space[]=" ";
     char *cmd;
-    int junk;
+    int ret=1;
 
     /* buffer: GET /runpuppet ... */
     cmd=strtok(buf,space);
     cmd=strtok(NULL,space);
-    if((junk=strcmp(cmd,"/runpuppet"))==0){
+    if((strcmp(cmd,"/runpuppet")==0)){
         DBG("Code to run puppet goes here");
-        return 0;
+        runpuppet();
+        ret=0;
     }
-    return 1;
+    return ret;
+}/* }}} */
+void runpuppet(void)/* {{{ */
+{
+    int cpid;
+    /*
+    char *args=NULL;
+    char *arg2=NULL;
+    char sudo[]="/usr/bin/sudo";
+    */
+    char *pbin=NULL;
+    char *shell=NULL;
+    int len;
+
+    cpid=fork();
+    if(cpid<0){
+        CCAE(1,"out of memory, cannot fork to run puppet");
+    }else if(cpid>0){
+        puppetrunning++;
+    }else{
+        len=snprintf(pbin,0,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
+        pbin=xmalloc(len++);
+        len=snprintf(pbin,len,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
+
+        shell=getenv("SHELL");
+        DEBUG("running puppet: %s -c %s",shell,pbin);
+        errno=0;
+        execl(shell,shell,"-c",pbin,(char *)NULL);
+        /* we should never get as far as this */
+        if(errno){
+            ERROR("exec error: %d",errno);
+            ERROR(strerror(errno));
+        }
+    }
+    DBG("runpuppet exiting");
 }/* }}} */
 void closedown(void)/* {{{ */
 {
@@ -125,30 +160,12 @@ void catchsignal(int sig)/* {{{1 */
 {
     DBG("in sig handler");
     switch(sig){
-        /* 
-        case SIGHUP:
-            DBG("SIGHUP signal caught");
-            NOTICE(PROGNAME" is not designed to reload it's config.  Please stop and re-start it");
-            break;
-        case SIGINT:
-            DBG("SIGINT signal caught");
-            NOTICE(PROGNAME" is not designed to be interrupted. Please stop it and re-start it when ready");
-            break;
-        case SIGUSR1:
-            DBG("SIGUSR1 signal caught");
-            break;
-            */
-        case SIGCHLD:
-            DBG("SIGCHLD signal caught");
-            puppetrunning--;
-            break;
         case SIGTERM:
             DBG("SIGTERM signal caught");
             timetodie=1;
             /* closedown(); */
             break;
     }
-    // signal(sig,catchsignal);
 } /* }}} */
 char *argprocessing(int argc,char **argv)/* {{{ */
 {
@@ -333,14 +350,15 @@ void daemonize()/* {{{1 */
     if((junk=sigaction(SIGUSR1,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGUSR1");
     }
+    /* setting this explicitly to ignore will automatically reap the zombie child processes when they terminate */
+    siga->sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
+        CCAE(1,"cannot set handler for SIGCHLD");
+    }
     /* interesting (caught) signals */
     siga->sa_handler=catchsignal;
     if((junk=sigaction(SIGTERM,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGTERM");
-    }
-    siga->sa_handler=catchsignal;
-    if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
-        CCAE(1,"cannot set handler for SIGCHLD");
     }
     DBG(PROGNAME" daemonized");
 }/* }}} */

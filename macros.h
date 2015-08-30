@@ -7,9 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Sunday 23 December 2012, 19:43:14
- * Version: 0.00
- * Revision: $Id: macros.h 53 2013-02-18 22:43:38Z chris.charles.allison@gmail.com $
- * Last Modified: Saturday 29 August 2015, 14:33:36
+ * Last Modified: Sunday 30 August 2015, 12:32:40
  */
 
 extern int llevel;
@@ -24,6 +22,7 @@ extern int llevel;
 #define INFO(...) if(llevel>=6){ syslog(LOG_INFO,__VA_ARGS__);}
 #define NOTICE(...) if(llevel>=5){ syslog(LOG_NOTICE,__VA_ARGS__);}
 #define WARN(...) if(llevel>=4){ syslog(LOG_WARNING,__VA_ARGS__);}
+#define ERROR(...) if(llevel>=3){ syslog(LOG_ERR,__VA_ARGS__);}
 #else
 #define CCA_ERR_CONT(...) syslog(LOG_ERR,__VA_ARGS__)
 #define CCA_ERR_EXIT(ccaex,...) CCA_ERR_CONT(__VA_ARGS__);exit(ccaex);
@@ -33,6 +32,7 @@ extern int llevel;
 #define INFO(...) if(llevel>=6){ syslog(LOG_INFO,__VA_ARGS__);}
 #define NOTICE(...) if(llevel>=5){ syslog(LOG_NOTICE,__VA_ARGS__);}
 #define WARN(...) if(llevel>=4){ syslog(LOG_WARNING,__VA_ARGS__);}
+#define ERROR(...) if(llevel>=3){ syslog(LOG_ERR,__VA_ARGS__);}
 #endif
 
 /* define NDEBUG to remove debug msgs */

@@ -8,7 +8,7 @@
  *
  * Started: Sunday 12 April 2015, 09:26:56
  * Version: 0.00
- * Last Modified: Sunday 30 August 2015, 02:05:54
+ * Last Modified: Sunday 30 August 2015, 03:32:58
  *
  * Copyright (c) 2015 Chris Allison chris.allison@bgch.co.uk
  */
@@ -22,15 +22,18 @@
 struct ConfigItem *configuration;
 struct sigaction *siga;
 int llevel=5;
+int timetodie=0;
+int puppetrunning=0;
 
 #include "macros.h"
 #include "tools.h"
 #include "configfile.h"
 
 int setuphttpserver(void);
-int httpserver(void);
+void httpserver(void);
 void processinput(int isockfd);
 int parseinput(char *buf);
+void runpuppet(void);
 void closedown(void);
 void catchsignal(int sig);
 char *argprocessing(int argc,char **argv);

@@ -7,8 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Monday  6 April 2015, 09:24:04
- * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 17:43:15
+ * Last Modified: Sunday 30 August 2015, 12:33:34
  */
 
 /*
@@ -42,17 +41,16 @@
 #include <dirent.h>
 
 #define PROGNAME "splrgd"
-#define PROGVERSION "0.0.1"
-#define PROGEMAIL "chris.allison@bgch.co.uk"
-#define PROGCOPYRIGHT "Copyright (C) 2014-2015 Chris Allison"
+#define PROGVERSION "0.9"
+#define PROGEMAIL "operations@bgch.co.uk"
+#define PROGCOPYRIGHT "Copyright (C) 2015 British Gas PLC"
 #define PROGLICENSE "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
 
 /*
  * uncomment for production build
  */
-/*
- * #define CCA_PRODUCTION 1
- */
+#define CCA_PRODUCTION 1
+
 #ifdef CCA_PRODUCTION
 #define PROGCONF "/etc/"PROGNAME".conf"
 #else
@@ -66,6 +64,7 @@
 #define CCA_DEFAULT_CONFIGFILE PROGCONF
 #define CCA_DEFAULT_DAEMONIZE "1"
 #define CCA_DEFAULT_PUPPETBIN "/usr/lib/bgch-puppet/puppet-apply.sh"
-#define CCA_DEFAULT_USERNAME "chrisallison"
-#define CCA_DEFAULT_GROUPNAME "chrisallison"
+#define CCA_DEFAULT_PUPPETLOG "/var/log/last_puppet_run.log"
+#define CCA_DEFAULT_USERNAME "ubuntu"
+#define CCA_DEFAULT_GROUPNAME "ubuntu"
 #define CCA_DEFAULT_PORTNO "2208"
