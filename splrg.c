@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 22:11:18
+ * Last Modified: Sunday 30 August 2015, 22:59:37
  *
  */
 
@@ -307,20 +307,22 @@ void daemonize()/* {{{1 */
     DBG("setting umask to 027");
     umask(027); /* set newly created file permissions */
 
-    DBG("Dropping priviledges");
+    DBG("Dropping privileges");
     username=configValue("username");
     if((pwd=getpwnam(username))==NULL){
-        CCAE(1,"user not found, will not run as root, exiting");
-    }
-    errno=0;
-    junk=setuid(pwd->pw_uid);
-    if(errno){
-        CCAE(1,"failed to drop priviledges, will not run as root, exiting");
+        CCAE(1,"user %s not found, will not run as root, exiting",username);
     }
     errno=0;
     junk=setgid(pwd->pw_gid);
     if(errno){
-        CCAE(1,"failed to drop group priviledges, will not run as root, exiting");
+        CCAC("errno: %d: %s",errno,strerror(errno));
+        CCAE(1,"failed to drop group privileges (grpid: %d), will not run as root, exiting",pwd->pw_gid);
+    }
+    errno=0;
+    junk=setuid(pwd->pw_uid);
+    if(errno){
+        CCAC("errno: %d: %s",errno,strerror(errno));
+        CCAE(1,"failed to drop privileges, will not run as root, exiting");
     }
 
     DBGL("cd'ing to %s",pwd->pw_dir);
