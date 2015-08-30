@@ -28,10 +28,11 @@ run depends:
 apt-get install libargtable2-0
 ````
 
- 1. edit the config file ````splrgd.conf```` and update the user and group names
  1. edit ````defs.h```` and remove the comment in front of ````// #define PRODUCTION```` on line 17, this will remove most of the debug statements from the binary.
  1. run ````make clean; make```` in the src directory. The binary is called ````splrgd````.
  2. copy the config file ````splrgd.conf```` to /etc/
+
+NOTE: ````make```` will output 3 errors regarding missing dependency files, then it will correct itself as it runs depends.sh to create them. Compilation should then continue (and take less than a 3 seconds on a reasonably modern machine).
 
 ## Configuration
 no changes will be required to the configuration file if these defaults suffice (obvs. they don't as we disable the umbongo user)
