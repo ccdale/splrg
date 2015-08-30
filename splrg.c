@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 21:38:06
+ * Last Modified: Sunday 30 August 2015, 22:07:41
  *
  */
 
@@ -161,7 +161,7 @@ void runpuppet(void)/* {{{ */
     if(cpid<0){
         CCAE(1,"out of memory, cannot fork to run puppet");
     }else if(cpid>0){
-        waitpid(-1, &kstatus, WNOHANG);
+        /* waitpid(-1, &kstatus, WNOHANG); */
         puppetrunning++;
     }else{
         len=snprintf(pbin,0,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
@@ -184,6 +184,10 @@ void catchsignal(int sig)/* {{{1 */
 {
     DBG("in sig handler");
     switch(sig){
+        case SIGCHLD:
+            DBG("SIGCHLD signal caught");
+            puppetrunning--;
+            break;
         case SIGTERM:
             DBG("SIGTERM signal caught");
             timetodie=1;
@@ -377,7 +381,8 @@ void daemonize()/* {{{1 */
         CCAE(1,"cannot set handler for SIGUSR1");
     }
     /* setting this explicitly to ignore will automatically reap the zombie child processes when they terminate */
-    siga->sa_handler=SIG_IGN;
+    /* siga->sa_handler=SIG_IGN; */
+    siga->sa_handler=catchsignal;
     if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGCHLD");
     }
