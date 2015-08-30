@@ -8,7 +8,7 @@
  *
  * Started: Friday 28 August 2015, 14:39:24
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 18:45:53
+ * Last Modified: Sunday 30 August 2015, 02:11:18
  *
  */
 
@@ -101,6 +101,8 @@ void closedown(void)/* {{{ */
     INFO(PROGNAME" closing");
     DBG("freeing config");
     deleteConfig();
+    DBG("freeing signal handlers");
+    free(siga);
     DBG("deleting lock file");
     unlink(CCA_LOCK_FILE);
     NOTICE(PROGNAME" stopped");
@@ -219,7 +221,6 @@ void daemonize()/* {{{1 */
     int junk;
     struct passwd *pwd;
     char *username;
-    struct sigaction *siga;
 
     if(getppid()==1) return; /* already a daemon */
     DBG("Forking");
@@ -321,8 +322,6 @@ void daemonize()/* {{{1 */
     if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGCHLD");
     }
-    DBG("freeing signal handlers");
-    free(siga);
     DBG(PROGNAME" daemonized");
 }/* }}} */
 int main(int argc,char **argv)/* {{{ */

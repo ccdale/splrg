@@ -4,12 +4,12 @@
  * configfile.h
  *
  * C.C.Allison
- * chris.allison@hotmail.com
+ * chris.allison@bgch.co.uk
  *
  * Started: Monday 24 December 2012, 13:11:56
  * Version: 0.00
  * Revision: $Id: configfile.h 37 2013-02-03 02:47:31Z chris.charles.allison@gmail.com $
- * Last Modified: Monday  1 June 2015, 07:33:04
+ * Last Modified: Sunday 30 August 2015, 02:12:09
  */
 #ifndef CCA_CONFIGFILE_H
 #define CCA_CONFIGFILE_H

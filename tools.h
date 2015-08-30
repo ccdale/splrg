@@ -4,12 +4,12 @@
  * tools.h
  *
  * C.C.Allison
- * chris.allison@hotmail.com
+ * chris.allison@bgch.co.uk
  *
  * Started: Wednesday 21 November 2012, 12:44:26
  * Version: 0.00
  * Revision: $Id: tools.h 46 2013-02-15 07:08:18Z chris.charles.allison@gmail.com $
- * Last Modified: Monday  6 April 2015, 09:31:41
+ * Last Modified: Sunday 30 August 2015, 02:13:30
  */
 
 #include "defs.h"

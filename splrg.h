@@ -8,7 +8,7 @@
  *
  * Started: Sunday 12 April 2015, 09:26:56
  * Version: 0.00
- * Last Modified: Saturday 29 August 2015, 17:09:28
+ * Last Modified: Sunday 30 August 2015, 02:05:54
  *
  * Copyright (c) 2015 Chris Allison chris.allison@bgch.co.uk
  */
@@ -20,7 +20,7 @@
 
 /* globals */
 struct ConfigItem *configuration;
-/* struct sigaction *siga; */
+struct sigaction *siga;
 int llevel=5;
 
 #include "macros.h"
