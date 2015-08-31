@@ -4,3 +4,4 @@ splrgd
 .iteration
 build/
 *deb
+Session.vim
