@@ -7,12 +7,12 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Sunday 23 December 2012, 19:43:14
- * Last Modified: Sunday 30 August 2015, 12:32:40
+ * Last Modified: Monday 31 August 2015, 11:33:36
  */
 
 extern int llevel;
 
-// #define PRODUCTION
+#define PRODUCTION
 #ifndef PRODUCTION
 #define CCA_ERR_CONT(...) syslog(LOG_ERR,__VA_ARGS__);fprintf(stderr,__VA_ARGS__);
 #define CCA_ERR_EXIT(ccaex,...) CCA_ERR_CONT(__VA_ARGS__);exit(ccaex);

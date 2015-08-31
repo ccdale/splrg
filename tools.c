@@ -9,7 +9,7 @@
  * Started: Wednesday 21 November 2012, 10:46:01
  * Version: 0.00
  * Revision: $Id: tools.c 55 2013-03-24 21:48:39Z chris.charles.allison@gmail.com $
- * Last Modified: Sunday 30 August 2015, 02:12:26
+ * Last Modified: Monday 31 August 2015, 11:33:23
  */
 
 #include "tools.h"
@@ -154,7 +154,7 @@ long filesize(char *filename)/* {{{1 */
         fsize=statbuf->st_size;
         DBGL("file size: %ld",fsize);
     }else{
-        WARN("Cannot read file %s",filename);
+        INFO("Cannot read file %s",filename);
     }
     DBG("freeing stat buffer");
     free(statbuf);

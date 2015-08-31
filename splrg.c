@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Sunday 30 August 2015, 23:32:17
+ * Last Modified: Monday 31 August 2015, 11:34:20
  *
  */
 
@@ -37,6 +37,7 @@ void httpserver(void)/* {{{ */
     int sockfd,newsockfd;
     socklen_t clilen;
     struct sockaddr_in cli_addr;
+    int rcvip;
 
     sockfd=setuphttpserver();
     listen(sockfd,5);
@@ -62,30 +63,30 @@ void httpserver(void)/* {{{ */
             }
         }else{
             /* every thing is fine, read the input */
-            processinput(newsockfd);
+            struct sockaddr_in* pv4addr = (struct sockaddr_in*)&cli_addr;
+            rcvip=pv4addr->sin_addr.s_addr;
+            processinput(newsockfd,rcvip);
         }
     }
 }/* }}} */
-void processinput(int isockfd)/* {{{ */
+void processinput(int isockfd,int ipaddr)/* {{{ */
 {
     int buflen=4096;
     char *data=NULL;
     char *buffer;
     char header[]="\r\nCache-control: no-cache\r\nConnection: close\r\n\r\n";
-    /*
-    char rok[]="HTTP/1.1 200\r\nCache-control: no-cache\r\nConnection: close\r\n\r\nOK\r\n";
-    char rnok[]="HTTP/1.1 404\r\nCache-control: no-cache\r\nConnection: close\r\n\r\n\r\n";
-    */
     char *response=NULL;
     int len;
     int n;
+    char sipaddr[INET_ADDRSTRLEN];
 
     buffer=xcalloc(buflen,sizeof(char));
     n=read(isockfd,buffer,buflen-1);
     if(n<0){
         CCAC("Error reading from socket, ignoring");
     }
-    DBGL("msg rcvd: %s",buffer);
+    inet_ntop( AF_INET, &ipaddr, sipaddr, INET_ADDRSTRLEN );
+    NOTICE("%s %s",sipaddr,buffer);
     n=parseinput(buffer,&data);
     if(n==0){
         len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,"");
@@ -148,8 +149,10 @@ void runpuppet(void)/* {{{ */
 {
     int cpid;
     char *pbin=NULL;
-    char *shell=NULL;
-    int len;
+    // char *args=NULL;
+    // char *shell=NULL;
+    char sudo[]="/usr/bin/sudo";
+    // int len;
 
     cpid=fork();
     if(cpid<0){
@@ -157,17 +160,26 @@ void runpuppet(void)/* {{{ */
     }else if(cpid>0){
         puppetrunning++;
     }else{
-        len=snprintf(pbin,0,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
-        pbin=xmalloc(len++);
-        len=snprintf(pbin,len,"sudo %s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
+        int fd = open(configValue("puppetlog"), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+        dup2(fd,1); // stdout
+        dup2(fd,2); // stderr
+        // len=snprintf(pbin,0,"%s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
+        // pbin=xmalloc(len++);
+        // len=snprintf(pbin,len,"%s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
+        pbin=configValue("puppetbin");
+        /*
+        len=snprintf(args,0,">%s 2>&1",configValue("puppetlog"));
+        args=xmalloc(len++);
+        len=snprintf(args,len,">%s 2>&1",configValue("puppetlog"));
+        */
 
-        shell=getenv("SHELL");
-        DEBUG("running puppet: %s -c %s",shell,pbin);
+        // shell=getenv("SHELL");
+        NOTICE("running puppet: %s %s",sudo,pbin);
         errno=0;
-        execl(shell,shell,"-c",pbin,(char *)NULL);
+        execl(sudo,sudo,pbin,(char *)NULL);
         /* we should never get as far as this */
         if(errno){
-            ERROR("exec error: %d",errno);
+            ERROR("puppet exec error: %d",errno);
             ERROR(strerror(errno));
         }
     }
@@ -181,7 +193,24 @@ void catchsignal(int sig)/* {{{1 */
             DBG("SIGCHLD signal caught");
             int childStatus;
             pid_t returnValue = waitpid(-1, &childStatus, 0);
-            DBGL("Child exited with return value of %d",returnValue);
+            if (returnValue > 0)
+            {
+                if (WIFEXITED(childStatus)){
+                    WARN("Puppet Exit Code: %d\n", WEXITSTATUS(childStatus));
+                }else{
+                    INFO("Puppet exit Status: 0x%.4X\n", childStatus);
+                }
+            }else if (returnValue == 0){
+                INFO("Child process still running\n");
+            }else{
+                if (errno == ECHILD){
+                    WARN(" Error ECHILD!!\n");
+                }else if (errno == EINTR){
+                    WARN(" Error EINTR!!\n");
+                }else{
+                    WARN("Error EINVAL!!\n");
+                }
+            }
             puppetrunning--;
             break;
         case SIGTERM:
@@ -330,6 +359,9 @@ void daemonize()/* {{{1 */
 
     DBGL("cd'ing to %s",pwd->pw_dir);
     chdir(pwd->pw_dir); /* change running directory */
+    if ((junk=filesize(CCA_LOCK_FILE)!=-1)){
+        CCAE(1,"daemon possibly still running, check %s",CCA_LOCK_FILE);
+    }
     DBG("Creating lock file");
     lfp=open(CCA_LOCK_FILE,O_RDWR|O_CREAT,0640);
     if (lfp<0) {

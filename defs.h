@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Monday  6 April 2015, 09:24:04
- * Last Modified: Sunday 30 August 2015, 21:37:32
+ * Last Modified: Monday 31 August 2015, 11:33:48
  */
 
 /*
@@ -33,6 +33,7 @@
 #include <netinet/in.h>
 #include <poll.h>
 #include <sys/wait.h>
+#include <arpa/inet.h>
 
 /*
  * libgen for the posix version of basename (tools.c:129)
