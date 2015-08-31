@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday 31 August 2015, 13:10:32
+ * Last Modified: Monday 31 August 2015, 14:11:05
  *
  */
 
@@ -120,6 +120,7 @@ int parseinput(char *buf,char **data,int isock)/* {{{ */
     char *cmd;
     int ret=1;
     int len;
+    long maxfilesize=10000000; /* approx 10MB */
 
     /* buffer: GET /runpuppet ... */
     cmd=strtok(buf,space);
@@ -138,6 +139,10 @@ int parseinput(char *buf,char **data,int isock)/* {{{ */
         fseek(f,0,SEEK_END);
         long fsize = ftell(f);
         fseek(f, 0, SEEK_SET);
+        if(fsize>maxfilesize){
+            /* ensure we don't ask for too much memory nor have a possible buffer overrun */
+            fsize=maxfilesize;
+        }
         *data=xmalloc(fsize+1);
         fread(*data,fsize,1,f);
         fclose(f);
