@@ -8,7 +8,7 @@
  *
  * Started: Sunday 12 April 2015, 09:26:56
  * Version: 0.00
- * Last Modified: Monday 31 August 2015, 11:34:08
+ * Last Modified: Monday 31 August 2015, 12:04:34
  *
  * Copyright (c) 2015 Chris Allison chris.allison@bgch.co.uk
  */
@@ -29,8 +29,8 @@ int puppetrunning=0;
 int setuphttpserver(void);
 void httpserver(void);
 void processinput(int isockfd, int ipaddr);
-int parseinput(char *buf,char **data);
-void runpuppet(void);
+int parseinput(char *buf,char **data,int isock);
+void runpuppet(int isock);
 void catchsignal(int sig);
 char *argprocessing(int argc,char **argv);
 void setDefaultConfig(void);

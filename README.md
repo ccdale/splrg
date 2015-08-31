@@ -62,3 +62,21 @@ Defaults:username !requiretty
 username ALL=(root) NOPASSWD: /usr/lib/bgch-puppet/puppet-apply.sh
 ````
 adjust the above path if the location of the puppet-apply script changes
+
+## Usage
+There are currently 3 commands that you can use:
+ 1. ````status```` returns the number of forked processes attempting to run puppet. The locking mechanism in puppet-apply.sh will keep the machine from running more than one instance of puppet at once. normally ruturns 0 or 1.
+ 2. ````runpuppet```` runs puppet-apply.sh in a forked process. Does not return any data (though the http status header will be 200).
+ 3. ````lastlog```` returns the contents of /var/tmp/last_puppet_run.log (or wherever you have re-directed it to).
+Any other command will return an hhtp status code of 404
+
+### Examples
+````
+curl http://localhost:2208/status
+0
+curl http://localhost:2208/runpuppet
+
+curl http://localhost:2208/status
+1
+````
+

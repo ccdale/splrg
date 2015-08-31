@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday 31 August 2015, 11:35:45
+ * Last Modified: Monday 31 August 2015, 13:10:32
  *
  */
 
@@ -87,7 +87,7 @@ void processinput(int isockfd,int ipaddr)/* {{{ */
     }
     inet_ntop( AF_INET, &ipaddr, sipaddr, INET_ADDRSTRLEN );
     NOTICE("%s %s",sipaddr,buffer);
-    n=parseinput(buffer,&data);
+    n=parseinput(buffer,&data,isockfd);
     if(n==0){
         len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,"");
         response=xmalloc(++len);
@@ -114,7 +114,7 @@ void processinput(int isockfd,int ipaddr)/* {{{ */
     free(response);
     free(buffer);
 }/* }}} */
-int parseinput(char *buf,char **data)/* {{{ */
+int parseinput(char *buf,char **data,int isock)/* {{{ */
 {
     char space[]=" ";
     char *cmd;
@@ -126,7 +126,7 @@ int parseinput(char *buf,char **data)/* {{{ */
     cmd=strtok(NULL,space);
     if((strcmp(cmd,"/runpuppet")==0)){
         DBG("Code to run puppet goes here");
-        runpuppet();
+        runpuppet(isock);
         ret=0;
     }else if((strcmp(cmd,"/status")==0)){
         len=snprintf(*data,0,"%d",puppetrunning);
@@ -145,7 +145,7 @@ int parseinput(char *buf,char **data)/* {{{ */
     }
     return ret;
 }/* }}} */
-void runpuppet(void)/* {{{ */
+void runpuppet(int isock)/* {{{ */
 {
     int cpid;
     char *pbin=NULL;
@@ -160,6 +160,8 @@ void runpuppet(void)/* {{{ */
         int fd = open(configValue("puppetlog"), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
         dup2(fd,1); // stdout
         dup2(fd,2); // stderr
+        close(fd);
+        close(isock);
         pbin=configValue("puppetbin");
 
         NOTICE("running puppet: %s %s",sudo,pbin);
@@ -329,7 +331,7 @@ void daemonize()/* {{{1 */
 
     DBG("Dropping privileges");
     username=configValue("username");
-    if((pwd=getpwnam(username))==NULL){
+    if((pwd=getpwnam(username))==NULL || strlen(username)==0){
         CCAE(1,"user %s not found, will not run as root, exiting",username);
     }
     errno=0;
