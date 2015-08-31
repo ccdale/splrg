@@ -8,7 +8,7 @@
  *
  * Started: Sunday 12 April 2015, 09:26:56
  * Version: 0.00
- * Last Modified: Monday 31 August 2015, 12:04:34
+ * Last Modified: Monday 31 August 2015, 14:50:13
  *
  * Copyright (c) 2015 Chris Allison chris.allison@bgch.co.uk
  */
@@ -17,7 +17,7 @@
 
 /* globals */
 struct ConfigItem *configuration;
-struct sigaction *siga;
+// struct sigaction *siga;
 int llevel=5;
 int timetodie=0;
 int puppetrunning=0;

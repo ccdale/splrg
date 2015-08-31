@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday 31 August 2015, 14:15:08
+ * Last Modified: Monday 31 August 2015, 14:50:10
  *
  */
 
@@ -309,6 +309,7 @@ void daemonize()/* {{{1 */
     int junk;
     struct passwd *pwd;
     char *username;
+    struct sigaction siga;
 
     if(getppid()==1) return; /* already a daemon */
     DBG("Forking");
@@ -378,43 +379,43 @@ void daemonize()/* {{{1 */
         CCAE(1,"cannot ignore signal SIGCHLD");
     }
     */
-    siga=xmalloc(sizeof(struct sigaction));
-    siga->sa_flags=0;
+    // siga=xmalloc(sizeof(struct sigaction));
+    siga.sa_flags=0;
+    // block every signal during handler
+    sigfillset(&siga.sa_mask);
 
     /* ignored signals */
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGTSTP,siga,NULL))!=0){
+    siga.sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGTSTP,&siga,NULL))!=0){
         CCAE(1,"cannot ignore signal SIGTSTP");
     }
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGTTOU,siga,NULL))!=0){
+    siga.sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGTTOU,&siga,NULL))!=0){
         CCAE(1,"cannot ignore signal SIGTTOU");
     }
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGTTIN,siga,NULL))!=0){
+    siga.sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGTTIN,&siga,NULL))!=0){
         CCAE(1,"cannot ignore signal SIGTTIN");
     }
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGHUP,siga,NULL))!=0){
+    siga.sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGHUP,&siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGHUP");
     }
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGINT,siga,NULL))!=0){
+    siga.sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGINT,&siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGINT");
     }
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGUSR1,siga,NULL))!=0){
+    siga.sa_handler=SIG_IGN;
+    if((junk=sigaction(SIGUSR1,&siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGUSR1");
     }
-    /* setting this explicitly to ignore will automatically reap the zombie child processes when they terminate */
-    /* siga->sa_handler=SIG_IGN; */
-    siga->sa_handler=catchsignal;
-    if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
+    /* interesting (caught) signals */
+    siga.sa_handler=catchsignal;
+    if((junk=sigaction(SIGCHLD,&siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGCHLD");
     }
-    /* interesting (caught) signals */
-    siga->sa_handler=catchsignal;
-    if((junk=sigaction(SIGTERM,siga,NULL))!=0){
+    siga.sa_handler=catchsignal;
+    if((junk=sigaction(SIGTERM,&siga,NULL))!=0){
         CCAE(1,"cannot set handler for SIGTERM");
     }
     DBG(PROGNAME" daemonized");
@@ -444,8 +445,8 @@ int main(int argc,char **argv)/* {{{ */
     INFO(PROGNAME" closing");
     DBG("freeing config");
     deleteConfig();
-    DBG("freeing signal handlers");
-    free(siga);
+ //    DBG("freeing signal handlers");
+   //  free(siga);
     DBG("deleting lock file");
     unlink(CCA_LOCK_FILE);
     NOTICE(PROGNAME" stopped");
