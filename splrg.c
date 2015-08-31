@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday 31 August 2015, 14:11:05
+ * Last Modified: Monday 31 August 2015, 14:14:17
  *
  */
 
@@ -84,29 +84,30 @@ void processinput(int isockfd,int ipaddr)/* {{{ */
     n=read(isockfd,buffer,buflen-1);
     if(n<0){
         CCAC("Error reading from socket, ignoring");
-    }
-    inet_ntop( AF_INET, &ipaddr, sipaddr, INET_ADDRSTRLEN );
-    NOTICE("%s %s",sipaddr,buffer);
-    n=parseinput(buffer,&data,isockfd);
-    if(n==0){
-        len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,"");
-        response=xmalloc(++len);
-        len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",200,header,"");
-    }else if(n==-1){
-        /* data needs to be sent back, data is now in *data  and space has been allocated by malloc */
-        len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,data);
-        response=xmalloc(++len);
-        len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",200,header,data);
-        free(data);
     }else{
-        len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",404,header,"");
-        response=xmalloc(++len);
-        len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",404,header,"");
-    }
-    DBGL("sending: %s",response);
-    n=write(isockfd,response,strlen(response));
-    if(n<0){
-        CCAC("Error writing to socket, ignoring");
+        inet_ntop( AF_INET, &ipaddr, sipaddr, INET_ADDRSTRLEN );
+        NOTICE("%s %s",sipaddr,buffer);
+        n=parseinput(buffer,&data,isockfd);
+        if(n==0){
+            len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,"OK");
+            response=xmalloc(++len);
+            len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",200,header,"OK");
+        }else if(n==-1){
+            /* data needs to be sent back, data is now in *data  and space has been allocated by malloc */
+            len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",200,header,data);
+            response=xmalloc(++len);
+            len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",200,header,data);
+            free(data);
+        }else{
+            len=snprintf(response,0,"HTTP/1.1 %d%s%s\r\n",404,header,"");
+            response=xmalloc(++len);
+            len=snprintf(response,len,"HTTP/1.1 %d%s%s\r\n",404,header,"");
+        }
+        DBGL("sending: %s",response);
+        n=write(isockfd,response,strlen(response));
+        if(n<0){
+            CCAC("Error writing to socket, ignoring");
+        }
     }
     DBG("Closing process socket");
     close(isockfd);
