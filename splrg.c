@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday 31 August 2015, 11:34:20
+ * Last Modified: Monday 31 August 2015, 11:35:45
  *
  */
 
@@ -149,10 +149,7 @@ void runpuppet(void)/* {{{ */
 {
     int cpid;
     char *pbin=NULL;
-    // char *args=NULL;
-    // char *shell=NULL;
     char sudo[]="/usr/bin/sudo";
-    // int len;
 
     cpid=fork();
     if(cpid<0){
@@ -163,17 +160,8 @@ void runpuppet(void)/* {{{ */
         int fd = open(configValue("puppetlog"), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
         dup2(fd,1); // stdout
         dup2(fd,2); // stderr
-        // len=snprintf(pbin,0,"%s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
-        // pbin=xmalloc(len++);
-        // len=snprintf(pbin,len,"%s >%s 2>&1",configValue("puppetbin"),configValue("puppetlog"));
         pbin=configValue("puppetbin");
-        /*
-        len=snprintf(args,0,">%s 2>&1",configValue("puppetlog"));
-        args=xmalloc(len++);
-        len=snprintf(args,len,">%s 2>&1",configValue("puppetlog"));
-        */
 
-        // shell=getenv("SHELL");
         NOTICE("running puppet: %s %s",sudo,pbin);
         errno=0;
         execl(sudo,sudo,pbin,(char *)NULL);
