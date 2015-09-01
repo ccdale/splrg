@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday 31 August 2015, 14:50:10
+ * Last Modified: Tuesday  1 September 2015, 14:48:30
  *
  */
 
@@ -28,6 +28,7 @@ int setuphttpserver(void)/* {{{ */
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
     if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr))<0){
+        ERROR("error: %d: %s",errno,strerror(errno));
         CCAE(1,"Cannot bind to socket");
     }
     return sockfd;
@@ -373,13 +374,6 @@ void daemonize()/* {{{1 */
     write(lfp,str,strlen(str)); /* record pid to lockfile */
     DBG("pid written to lock file");
     DBG("setting signal handlers");
-    /*
-    siga->sa_handler=SIG_IGN;
-    if((junk=sigaction(SIGCHLD,siga,NULL))!=0){
-        CCAE(1,"cannot ignore signal SIGCHLD");
-    }
-    */
-    // siga=xmalloc(sizeof(struct sigaction));
     siga.sa_flags=0;
     // block every signal during handler
     sigfillset(&siga.sa_mask);
