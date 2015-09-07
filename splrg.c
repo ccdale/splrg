@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Monday  7 September 2015, 14:17:15
+ * Last Modified: Monday  7 September 2015, 16:32:51
  *
  */
 
@@ -141,18 +141,20 @@ int parseinput(char *buf,char **data,int isock)/* {{{ */
         FILE *f=fopen(configValue("puppetlog"),"rb");
         if(errno){
            WARN("file not found %s error: %d: %s",configValue("puppetlog"),errno,strerror(errno)); 
+           ret=2;
+        }else{
+            fseek(f,0,SEEK_END);
+            long fsize = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            if(fsize>maxfilesize){
+                /* ensure we don't ask for too much memory nor have a possible buffer overrun */
+                fsize=maxfilesize;
+            }
+            *data=xmalloc(fsize+1);
+            fread(*data,fsize,1,f);
+            fclose(f);
+            ret=-1;
         }
-        fseek(f,0,SEEK_END);
-        long fsize = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        if(fsize>maxfilesize){
-            /* ensure we don't ask for too much memory nor have a possible buffer overrun */
-            fsize=maxfilesize;
-        }
-        *data=xmalloc(fsize+1);
-        fread(*data,fsize,1,f);
-        fclose(f);
-        ret=-1;
     }
     return ret;
 }/* }}} */
