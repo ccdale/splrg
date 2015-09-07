@@ -7,7 +7,7 @@
  * chris.allison@bgch.co.uk
  *
  * Started: Friday 28 August 2015, 14:39:24
- * Last Modified: Tuesday  1 September 2015, 14:48:30
+ * Last Modified: Monday  7 September 2015, 14:17:15
  *
  */
 
@@ -137,7 +137,11 @@ int parseinput(char *buf,char **data,int isock)/* {{{ */
         len=snprintf(*data,len,"%d",puppetrunning);
         ret=-1;
     }else if((strcmp(cmd,"/lastlog")==0)){
+        errno=0;
         FILE *f=fopen(configValue("puppetlog"),"rb");
+        if(errno){
+           WARN("file not found %s error: %d: %s",configValue("puppetlog"),errno,strerror(errno)); 
+        }
         fseek(f,0,SEEK_END);
         long fsize = ftell(f);
         fseek(f, 0, SEEK_SET);
